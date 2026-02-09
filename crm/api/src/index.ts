@@ -1,8 +1,8 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { contactRoutes } from './routes/contact.routes.js'
-import { leadRoutes } from './routes/lead.routes.js'
+import { contactRoutes } from './routes/contacts/index.js'
+import { leadRoutes } from './routes/leads/index.js'
 
 const app = new Hono()
 
