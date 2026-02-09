@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api } from '../services/api'
+import { contactService } from '../services/contactService'
 import { ContactForm } from '../components/ContactForm'
 import type { Contact, Lead } from '../types'
 
@@ -18,7 +18,7 @@ export function ContactsPage() {
     setLoading(true)
     setError('')
     try {
-      const data = await api.getContacts(search || undefined)
+      const data = await contactService.getAll(search || undefined)
       setContacts(data)
     } catch {
       setError('Erro ao carregar contatos')
@@ -31,7 +31,7 @@ export function ContactsPage() {
     setSelectedContact(contact)
     setLoadingLeads(true)
     try {
-      const data = await api.getContactLeads(contact.id)
+      const data = await contactService.getLeads(contact.id)
       setContactLeads(data)
     } catch {
       setContactLeads([])
@@ -45,7 +45,7 @@ export function ContactsPage() {
       return
     }
     try {
-      await api.deleteContact(contact.id)
+      await contactService.remove(contact.id)
       if (selectedContact?.id === contact.id) {
         setSelectedContact(null)
         setContactLeads([])

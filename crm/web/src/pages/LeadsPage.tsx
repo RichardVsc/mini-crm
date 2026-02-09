@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api } from '../services/api'
+import { leadService } from '../services/leadService'
 import { LeadForm } from '../components/LeadForm'
 import { LEAD_STATUSES } from '../types'
 import type { Lead } from '../types'
@@ -33,7 +33,7 @@ export function LeadsPage() {
     setLoading(true)
     setError('')
     try {
-      const data = await api.getLeads(search || undefined, statusFilter || undefined)
+      const data = await leadService.getAll(search || undefined, statusFilter || undefined)
       setLeads(data)
     } catch {
       setError('Erro ao carregar leads')
@@ -46,7 +46,7 @@ export function LeadsPage() {
     if (!confirm(`Deseja realmente remover o lead "${lead.name}"?`)) return
 
     try {
-      await api.deleteLead(lead.id)
+      await leadService.remove(lead.id)
       fetchLeads()
     } catch {
       alert('Erro ao remover lead')

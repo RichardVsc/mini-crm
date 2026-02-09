@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { api } from '../services/api'
+import { contactService } from '../services/contactService'
 import type { Contact } from '../types'
 
 interface ContactFormProps {
@@ -24,9 +24,9 @@ export function ContactForm({ contact, onSuccess, onCancel }: ContactFormProps) 
 
     try {
       if (isEditing) {
-        await api.updateContact(contact.id, { name, email, phone })
+        await contactService.update(contact.id, { name, email, phone })
       } else {
-        await api.createContact({ name, email, phone })
+        await contactService.create({ name, email, phone })
       }
       onSuccess()
     } catch (err) {

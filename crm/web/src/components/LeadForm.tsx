@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { api } from '../services/api'
+import { contactService } from '../services/contactService'
+import { leadService } from '../services/leadService'
 import { LEAD_STATUSES } from '../types'
 import type { Contact, Lead } from '../types'
 
@@ -21,7 +22,7 @@ export function LeadForm({ lead, onSuccess, onCancel }: LeadFormProps) {
   const isEditing = !!lead
 
   useEffect(() => {
-    api.getContacts().then(setContacts).catch(() => setContacts([]))
+    contactService.getAll().then(setContacts).catch(() => setContacts([]))
   }, [])
 
   async function handleSubmit(e: React.SyntheticEvent) {
@@ -31,9 +32,9 @@ export function LeadForm({ lead, onSuccess, onCancel }: LeadFormProps) {
 
     try {
       if (isEditing) {
-        await api.updateLead(lead.id, { name, company, status })
+        await leadService.update(lead.id, { name, company, status })
       } else {
-        await api.createLead({ contactId, name, company, status })
+        await leadService.create({ contactId, name, company, status })
       }
       onSuccess()
     } catch (err) {
