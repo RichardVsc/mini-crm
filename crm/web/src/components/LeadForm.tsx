@@ -22,7 +22,9 @@ export function LeadForm({ lead, onSuccess, onCancel }: LeadFormProps) {
   const isEditing = !!lead
 
   useEffect(() => {
-    contactService.getAll().then(setContacts).catch(() => setContacts([]))
+    contactService.getAll(undefined, undefined, undefined, undefined, 50)
+      .then((res) => setContacts(res.data))
+      .catch(() => setContacts([]))
   }, [])
 
   async function handleSubmit(e: React.SyntheticEvent) {

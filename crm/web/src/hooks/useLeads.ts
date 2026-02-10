@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { leadService } from '../services/leadService'
 import { useDebounce } from './useDebounce'
 import type { Lead } from '../types'
@@ -28,7 +28,7 @@ export function useLeads() {
     }
   }
 
-  async function fetchLeads() {
+  const fetchLeads = useCallback(async (fetchPage: number) => {
     setLoading(true)
     setError('')
     try {
@@ -37,7 +37,7 @@ export function useLeads() {
         statusFilter || undefined,
         sortBy || undefined,
         sortOrder,
-        page,
+        fetchPage,
         LEADS_PER_PAGE
       )
       setLeads(response.data)
@@ -48,6 +48,16 @@ export function useLeads() {
     } finally {
       setLoading(false)
     }
+  }, [debouncedSearch, statusFilter, sortBy, sortOrder])
+
+  useEffect(() => {
+    setPage(1)
+    fetchLeads(1)
+  }, [fetchLeads])
+
+  function handlePageChange(newPage: number) {
+    setPage(newPage)
+    fetchLeads(newPage)
   }
 
   async function deleteLead(lead: Lead) {
@@ -55,19 +65,11 @@ export function useLeads() {
 
     try {
       await leadService.remove(lead.id)
-      fetchLeads()
+      fetchLeads(page)
     } catch {
       alert('Erro ao remover lead')
     }
   }
-
-  useEffect(() => {
-    setPage(1)
-  }, [debouncedSearch, statusFilter, sortBy, sortOrder])
-
-  useEffect(() => {
-    fetchLeads()
-  }, [debouncedSearch, statusFilter, sortBy, sortOrder, page])
 
   return {
     leads,
@@ -81,10 +83,10 @@ export function useLeads() {
     sortOrder,
     handleSort,
     page,
-    setPage,
+    setPage: handlePageChange,
     totalPages,
     total,
     deleteLead,
-    refetch: fetchLeads,
+    refetch: () => fetchLeads(page),
   }
 }

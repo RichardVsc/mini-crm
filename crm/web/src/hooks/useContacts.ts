@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { contactService } from '../services/contactService'
 import { useDebounce } from './useDebounce'
 import type { Contact, Lead } from '../types'
@@ -30,7 +30,7 @@ export function useContacts() {
     }
   }
 
-  async function fetchContacts() {
+  const fetchContacts = useCallback(async (fetchPage: number) => {
     setLoading(true)
     setError('')
     setSelectedContact(null)
@@ -40,7 +40,7 @@ export function useContacts() {
         debouncedSearch || undefined,
         sortBy || undefined,
         sortOrder,
-        page,
+        fetchPage,
         CONTACTS_PER_PAGE
       )
       setContacts(response.data)
@@ -51,6 +51,16 @@ export function useContacts() {
     } finally {
       setLoading(false)
     }
+  }, [debouncedSearch, sortBy, sortOrder])
+
+  useEffect(() => {
+    setPage(1)
+    fetchContacts(1)
+  }, [fetchContacts])
+
+  function handlePageChange(newPage: number) {
+    setPage(newPage)
+    fetchContacts(newPage)
   }
 
   async function fetchContactLeads(contact: Contact) {
@@ -82,19 +92,11 @@ export function useContacts() {
         setSelectedContact(null)
         setContactLeads([])
       }
-      fetchContacts()
+      fetchContacts(page)
     } catch {
       alert('Erro ao remover contato')
     }
   }
-
-  useEffect(() => {
-    setPage(1)
-  }, [debouncedSearch, sortBy, sortOrder])
-
-  useEffect(() => {
-    fetchContacts()
-  }, [debouncedSearch, sortBy, sortOrder, page])
 
   return {
     contacts,
@@ -106,7 +108,7 @@ export function useContacts() {
     sortOrder,
     handleSort,
     page,
-    setPage,
+    setPage: handlePageChange,
     totalPages,
     total,
     selectedContact,
@@ -114,6 +116,6 @@ export function useContacts() {
     loadingLeads,
     fetchContactLeads,
     deleteContact,
-    refetch: fetchContacts,
+    refetch: () => fetchContacts(page),
   }
 }
