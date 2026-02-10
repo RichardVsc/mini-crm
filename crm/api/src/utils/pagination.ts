@@ -21,7 +21,7 @@ export function paginate<T>(
   allowedSortFields: string[]
 ): PaginatedResult<T> {
   const page = Math.max(1, Number(params.page) || 1)
-  const limit = Math.min(50, Math.max(1, Number(params.limit) || 10))
+  const limit = Math.min(50, Math.max(1, params.limit !== undefined ? Number(params.limit) : 10))
   const sortBy = params.sortBy && allowedSortFields.includes(params.sortBy) ? params.sortBy : undefined
   const sortOrder = params.sortOrder === 'desc' ? -1 : 1
 
