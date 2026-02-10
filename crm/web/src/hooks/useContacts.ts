@@ -18,6 +18,8 @@ export function useContacts() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [contactLeads, setContactLeads] = useState<Lead[]>([])
   const [loadingLeads, setLoadingLeads] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<Contact | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const debouncedSearch = useDebounce(search)
 
@@ -82,19 +84,30 @@ export function useContacts() {
     }
   }
 
-  async function deleteContact(contact: Contact) {
-    if (!confirm(`Deseja realmente remover o contato "${contact.name}"? Os leads vinculados também serão removidos.`)) {
-      return
-    }
+  function requestDelete(contact: Contact) {
+    setPendingDelete(contact)
+  }
+
+  function cancelDelete() {
+    setPendingDelete(null)
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return
+    setDeleting(true)
     try {
-      await contactService.remove(contact.id)
-      if (selectedContact?.id === contact.id) {
+      await contactService.remove(pendingDelete.id)
+      if (selectedContact?.id === pendingDelete.id) {
         setSelectedContact(null)
         setContactLeads([])
       }
+      setPendingDelete(null)
       fetchContacts(page)
     } catch {
-      alert('Erro ao remover contato')
+      setPendingDelete(null)
+      setError('Erro ao remover contato')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -115,7 +128,11 @@ export function useContacts() {
     contactLeads,
     loadingLeads,
     fetchContactLeads,
-    deleteContact,
+    pendingDelete,
+    deleting,
+    requestDelete,
+    confirmDelete,
+    cancelDelete,
     refetch: () => fetchContacts(page),
   }
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLeads } from '../hooks/useLeads'
 import { LeadForm } from '../components/LeadForm'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { SortableHeader } from '../components/SortableHeader'
 import { Pagination } from '../components/Pagination'
 import { STATUS_LABELS, STATUS_COLORS } from '../constants/lead'
@@ -15,7 +16,8 @@ export function LeadsPage() {
     leads, search, setSearch, statusFilter, setStatusFilter,
     loading, error, sortBy, sortOrder, handleSort,
     page, setPage, totalPages, total,
-    deleteLead, refetch,
+    pendingDelete, deleting, requestDelete, confirmDelete, cancelDelete,
+    refetch,
   } = useLeads()
 
   function handleFormSuccess() {
@@ -108,7 +110,7 @@ export function LeadsPage() {
                     </td>
                     <td className="px-4 py-3 text-sm text-right space-x-2">
                       <button onClick={() => handleEdit(lead)} className="text-yellow-600 hover:underline">Editar</button>
-                      <button onClick={() => deleteLead(lead)} className="text-red-600 hover:underline">Remover</button>
+                      <button onClick={() => requestDelete(lead)} className="text-red-600 hover:underline">Remover</button>
                     </td>
                   </tr>
                 ))}
@@ -119,6 +121,15 @@ export function LeadsPage() {
           <Pagination page={page} totalPages={totalPages} total={total} label="lead" onPageChange={setPage} />
         </>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Remover Lead"
+        message={`Deseja realmente remover o lead "${pendingDelete?.name}"?`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        loading={deleting}
+      />
     </div>
   )
 }

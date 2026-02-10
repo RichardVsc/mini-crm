@@ -16,6 +16,8 @@ export function useLeads() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [pendingDelete, setPendingDelete] = useState<Lead | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const debouncedSearch = useDebounce(search)
 
@@ -60,14 +62,26 @@ export function useLeads() {
     fetchLeads(newPage)
   }
 
-  async function deleteLead(lead: Lead) {
-    if (!confirm(`Deseja realmente remover o lead "${lead.name}"?`)) return
+  function requestDelete(lead: Lead) {
+    setPendingDelete(lead)
+  }
 
+  function cancelDelete() {
+    setPendingDelete(null)
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return
+    setDeleting(true)
     try {
-      await leadService.remove(lead.id)
+      await leadService.remove(pendingDelete.id)
+      setPendingDelete(null)
       fetchLeads(page)
     } catch {
-      alert('Erro ao remover lead')
+      setPendingDelete(null)
+      setError('Erro ao remover lead')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -86,7 +100,11 @@ export function useLeads() {
     setPage: handlePageChange,
     totalPages,
     total,
-    deleteLead,
+    pendingDelete,
+    deleting,
+    requestDelete,
+    confirmDelete,
+    cancelDelete,
     refetch: () => fetchLeads(page),
   }
 }

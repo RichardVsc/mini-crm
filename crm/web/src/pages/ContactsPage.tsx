@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useContacts } from '../hooks/useContacts'
 import { ContactForm } from '../components/ContactForm'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { SortableHeader } from '../components/SortableHeader'
 import { Pagination } from '../components/Pagination'
 import type { Contact } from '../types'
@@ -14,7 +15,9 @@ export function ContactsPage() {
     sortBy, sortOrder, handleSort,
     page, setPage, totalPages, total,
     selectedContact, contactLeads, loadingLeads,
-    fetchContactLeads, deleteContact, refetch,
+    fetchContactLeads,
+    pendingDelete, deleting, requestDelete, confirmDelete, cancelDelete,
+    refetch,
   } = useContacts()
 
   function handleFormSuccess() {
@@ -90,7 +93,7 @@ export function ContactsPage() {
                     <td className="px-4 py-3 text-sm text-right space-x-2">
                       <button onClick={() => fetchContactLeads(contact)} className="text-blue-600 hover:underline">Leads</button>
                       <button onClick={() => handleEdit(contact)} className="text-yellow-600 hover:underline">Editar</button>
-                      <button onClick={() => deleteContact(contact)} className="text-red-600 hover:underline">Remover</button>
+                      <button onClick={() => requestDelete(contact)} className="text-red-600 hover:underline">Remover</button>
                     </td>
                   </tr>
                 ))}
@@ -123,6 +126,15 @@ export function ContactsPage() {
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Remover Contato"
+        message={`Deseja realmente remover o contato "${pendingDelete?.name}"? Os leads vinculados também serão removidos.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        loading={deleting}
+      />
     </div>
   )
 }
