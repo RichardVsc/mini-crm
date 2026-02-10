@@ -3,7 +3,7 @@ import { contactService } from '../services/contactService'
 import { useDebounce } from './useDebounce'
 import type { Contact, Lead } from '../types'
 
-const CONTACTS_PER_PAGE = 1
+const CONTACTS_PER_PAGE = 10
 
 export function useContacts() {
   const [contacts, setContacts] = useState<Contact[]>([])
