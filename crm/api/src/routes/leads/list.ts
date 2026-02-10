@@ -2,13 +2,13 @@ import { Hono } from 'hono'
 import { leadRepository } from '../../repositories/lead.repository.js'
 import { contactRepository } from '../../repositories/contact.repository.js'
 import { paginate } from '../../utils/pagination.js'
-import type { LeadStatus } from '../../types/index.js'
+import { LEAD_STATUSES } from '../../types/index.js'
 
 const route = new Hono()
 
 route.get('/', (c) => {
   const search = c.req.query('search')
-  const status = c.req.query('status') as LeadStatus | undefined
+  const status = LEAD_STATUSES.find((s) => s === c.req.query('status'))
 
   const leads = leadRepository.findAll({ search, status })
 
