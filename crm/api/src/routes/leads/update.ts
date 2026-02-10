@@ -5,7 +5,7 @@ import { updateLeadSchema } from '../../schemas/lead.schema.js'
 
 const route = new Hono()
 
-route.put('/:id', async (c) => {
+route.patch('/:id', async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
   const result = updateLeadSchema.safeParse(body)

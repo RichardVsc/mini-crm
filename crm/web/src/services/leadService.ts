@@ -1,17 +1,7 @@
 import { request } from './api'
-import type { Lead } from '../types'
+import type { Lead, PaginatedResponse } from '../types'
 
 type CreateLeadData = Omit<Lead, 'id' | 'createdAt' | 'contact'>
-
-interface PaginatedResponse {
-  data: Lead[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
 
 export const leadService = {
   getAll: (search?: string, status?: string, sortBy?: string, sortOrder?: string, page?: number, limit?: number) => {
@@ -23,7 +13,7 @@ export const leadService = {
     if (page) params.set('page', String(page))
     if (limit) params.set('limit', String(limit))
     const query = params.toString()
-    return request<PaginatedResponse>(`/leads${query ? `?${query}` : ''}`)
+    return request<PaginatedResponse<Lead>>(`/leads${query ? `?${query}` : ''}`)
   },
 
   create: (data: CreateLeadData) =>
@@ -34,7 +24,7 @@ export const leadService = {
 
   update: (id: string, data: Partial<CreateLeadData>) =>
     request<Lead>(`/leads/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 

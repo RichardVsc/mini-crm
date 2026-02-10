@@ -5,7 +5,7 @@ import { updateContactSchema } from '../../schemas/contact.schema.js'
 
 const route = new Hono()
 
-route.put('/:id', async (c) => {
+route.patch('/:id', async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
   const result = updateContactSchema.safeParse(body)

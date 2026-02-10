@@ -1,17 +1,7 @@
 import { request } from './api'
-import type { Contact, Lead } from '../types'
+import type { Contact, Lead, PaginatedResponse } from '../types'
 
 type CreateContactData = Omit<Contact, 'id' | 'createdAt'>
-
-interface PaginatedResponse {
-  data: Contact[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
 
 export const contactService = {
   getAll: (search?: string, sortBy?: string, sortOrder?: string, page?: number, limit?: number) => {
@@ -22,7 +12,7 @@ export const contactService = {
     if (page) params.set('page', String(page))
     if (limit) params.set('limit', String(limit))
     const query = params.toString()
-    return request<PaginatedResponse>(`/contacts${query ? `?${query}` : ''}`)
+    return request<PaginatedResponse<Contact>>(`/contacts${query ? `?${query}` : ''}`)
   },
 
   create: (data: CreateContactData) =>
@@ -33,7 +23,7 @@ export const contactService = {
 
   update: (id: string, data: Partial<CreateContactData>) =>
     request<Contact>(`/contacts/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 

@@ -141,7 +141,7 @@ npm test
 |--------|-------------------------------|----------------------------------|
 | GET    | /contacts                     | Listar contatos (com paginação)  |
 | POST   | /contacts                     | Criar contato                    |
-| PUT    | /contacts/:id                 | Atualizar contato                |
+| PATCH  | /contacts/:id                 | Atualizar contato (parcial)      |
 | DELETE | /contacts/:id                 | Remover contato                  |
 | GET    | /contacts/:contactId/leads    | Listar leads de um contato       |
 
@@ -151,7 +151,7 @@ npm test
 |--------|-------------------------------|----------------------------------|
 | GET    | /leads                        | Listar leads (com paginação)     |
 | POST   | /leads                        | Criar lead                       |
-| PUT    | /leads/:id                    | Atualizar lead                   |
+| PATCH  | /leads/:id                    | Atualizar lead (parcial)         |
 | DELETE | /leads/:id                    | Remover lead                     |
 
 ### Query Params
