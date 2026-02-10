@@ -25,8 +25,9 @@ Aplicação fullstack para gerenciamento de **leads** e **contatos**, composta p
 crm/
 ├── api/                          # Backend
 │   └── src/
-│       ├── __tests__/            # Testes unitários
+│       ├── __tests__/            # Testes unitários e de integração
 │       │   ├── repositories/
+│       │   ├── routes/
 │       │   ├── schemas/
 │       │   └── utils/
 │       ├── repositories/         # Acesso aos dados (in-memory)
@@ -37,6 +38,7 @@ crm/
 │       ├── types/                # Interfaces e tipos compartilhados
 │       ├── utils/                # Utilitários (paginação, ordenação)
 │       ├── seed.ts               # Dados iniciais
+│       ├── app.ts                # Configuração do Hono (usado nos testes)
 │       └── index.ts              # Entry point
 ├── web/                          # Frontend
 │   └── src/
@@ -65,7 +67,7 @@ Extraídos em uma função utilitária genérica (`paginate`) que aceita campos 
 - **Custom Hooks** (`useContacts`, `useLeads`): encapsulam toda a lógica de estado e comunicação com API, mantendo as páginas focadas apenas em renderização
 - **Debounce** na busca para evitar requisições excessivas
 - **Services separados** por entidade para facilitar testes e manutenção
-- **Componentes reutilizáveis**: `Pagination`, `SortableHeader`
+- **Componentes reutilizáveis**: `Pagination`, `SortableHeader`, `ConfirmDialog`
 - **Máscara de telefone** no input para melhor UX
 
 ## 📋 Funcionalidades
@@ -81,9 +83,9 @@ Extraídos em uma função utilitária genérica (`paginate`) que aceita campos 
 ### Diferenciais Implementados
 - Paginação nas listagens
 - Edição de leads e contatos
-- Remoção com confirmação
+- Remoção com confirmação (modal customizado)
 - Ordenação por nome ou data
-- Testes unitários (repositories, schemas, paginação)
+- Testes unitários e de integração (121 testes)
 - Responsividade
 - Seed data para facilitar avaliação
 - Máscara e validação de telefone
@@ -131,6 +133,9 @@ A aplicação estará disponível em `http://localhost:5173`.
 ```bash
 cd crm/api
 npm test
+
+cd crm/web
+npm test
 ```
 
 ## 📦 Endpoints da API
@@ -168,14 +173,16 @@ npm test
 
 ## 🧪 Testes
 
-Backend – 55 testes unitários cobrindo:
+Backend – 87 testes cobrindo:
 
-- **Repositories**: CRUD completo, busca, filtros
+- **Rotas (integração)**: CRUD completo via HTTP, validação, cascade delete, enriquecimento de dados, busca, filtros, paginação e ordenação
+- **Repositories**: CRUD, busca, filtros combinados
 - **Schemas**: Validação de campos, formatos, parcialidade no update
 - **Paginação**: Limites, ordenação, campos inválidos
 
-Frontend – 12 testes unitários cobrindo:
+Frontend – 34 testes cobrindo:
 
+- **Componentes**: ConfirmDialog (render, interações, acessibilidade), Pagination (navegação, estados), SortableHeader (indicadores visuais)
 - **Hooks**: comportamento assíncrono e controle de estado (useDebounce)
 - **Utils**: funções puras e regras de formatação (phoneMask)
 - **Constantes**: consistência entre estados, labels e cores de domínio
