@@ -13,6 +13,11 @@ export interface Lead {
   company: string
   status: LeadStatus
   createdAt: string
+  contact?: {
+    id: string
+    name: string
+    email: string
+  }
 }
 
 export type LeadStatus = 'novo' | 'contactado' | 'qualificado' | 'convertido' | 'perdido'

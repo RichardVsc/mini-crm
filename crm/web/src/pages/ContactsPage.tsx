@@ -1,75 +1,32 @@
-import { useEffect, useState } from 'react'
-import { contactService } from '../services/contactService'
+import { useState } from 'react'
+import { useContacts } from '../hooks/useContacts'
 import { ContactForm } from '../components/ContactForm'
-import type { Contact, Lead } from '../types'
+import { SortableHeader } from '../components/SortableHeader'
+import { Pagination } from '../components/Pagination'
+import type { Contact } from '../types'
 
 export function ContactsPage() {
-  const [contacts, setContacts] = useState<Contact[]>([])
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingContact, setEditingContact] = useState<Contact | undefined>()
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
-  const [contactLeads, setContactLeads] = useState<Lead[]>([])
-  const [loadingLeads, setLoadingLeads] = useState(false)
 
-  async function fetchContacts() {
-    setLoading(true)
-    setError('')
-    try {
-      const data = await contactService.getAll(search || undefined)
-      setContacts(data)
-    } catch {
-      setError('Erro ao carregar contatos')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function fetchContactLeads(contact: Contact) {
-    setSelectedContact(contact)
-    setLoadingLeads(true)
-    try {
-      const data = await contactService.getLeads(contact.id)
-      setContactLeads(data)
-    } catch {
-      setContactLeads([])
-    } finally {
-      setLoadingLeads(false)
-    }
-  }
-
-  async function handleDelete(contact: Contact) {
-    if (!confirm(`Deseja realmente remover o contato "${contact.name}"? Os leads vinculados também serão removidos.`)) {
-      return
-    }
-    try {
-      await contactService.remove(contact.id)
-      if (selectedContact?.id === contact.id) {
-        setSelectedContact(null)
-        setContactLeads([])
-      }
-      fetchContacts()
-    } catch {
-      alert('Erro ao remover contato')
-    }
-  }
+  const {
+    contacts, search, setSearch, loading, error,
+    sortBy, sortOrder, handleSort,
+    page, setPage, totalPages, total,
+    selectedContact, contactLeads, loadingLeads,
+    fetchContactLeads, deleteContact, refetch,
+  } = useContacts()
 
   function handleFormSuccess() {
     setShowForm(false)
     setEditingContact(undefined)
-    fetchContacts()
+    refetch()
   }
 
   function handleEdit(contact: Contact) {
     setEditingContact(contact)
     setShowForm(true)
   }
-
-  useEffect(() => {
-    fetchContacts()
-  }, [search])
 
   return (
     <div className="space-y-6">
@@ -109,51 +66,40 @@ export function ContactsPage() {
       )}
 
       {!loading && contacts.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-lg border border-gray-200">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Nome</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Email</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Telefone</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Criado em</th>
-                <th className="text-right px-4 py-3 text-sm font-medium text-gray-600">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contacts.map((contact) => (
-                <tr key={contact.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-800">{contact.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{contact.email}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{contact.phone}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {new Date(contact.createdAt).toLocaleDateString('pt-BR')}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right space-x-2">
-                    <button
-                      onClick={() => fetchContactLeads(contact)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Leads
-                    </button>
-                    <button
-                      onClick={() => handleEdit(contact)}
-                      className="text-yellow-600 hover:underline"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(contact)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Remover
-                    </button>
-                  </td>
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full bg-white rounded-lg border border-gray-200">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <SortableHeader label="Nome" field="name" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Email</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Telefone</th>
+                  <SortableHeader label="Criado em" field="createdAt" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <th className="text-right px-4 py-3 text-sm font-medium text-gray-600">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {contacts.map((contact) => (
+                  <tr key={contact.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-800">{contact.name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{contact.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{contact.phone}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {new Date(contact.createdAt).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right space-x-2">
+                      <button onClick={() => fetchContactLeads(contact)} className="text-blue-600 hover:underline">Leads</button>
+                      <button onClick={() => handleEdit(contact)} className="text-yellow-600 hover:underline">Editar</button>
+                      <button onClick={() => deleteContact(contact)} className="text-red-600 hover:underline">Remover</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <Pagination page={page} totalPages={totalPages} total={total} label="contato" onPageChange={setPage} />
+        </>
       )}
 
       {selectedContact && (

@@ -1,12 +1,28 @@
 import { request } from './api'
-import type { Contact } from '../types'
+import type { Contact, Lead } from '../types'
 
 type CreateContactData = Omit<Contact, 'id' | 'createdAt'>
 
+interface PaginatedResponse {
+  data: Contact[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
 export const contactService = {
-  getAll: (search?: string) => {
-    const params = search ? `?search=${encodeURIComponent(search)}` : ''
-    return request<Contact[]>(`/contacts${params}`)
+  getAll: (search?: string, sortBy?: string, sortOrder?: string, page?: number, limit?: number) => {
+    const params = new URLSearchParams()
+    if (search) params.set('search', search)
+    if (sortBy) params.set('sortBy', sortBy)
+    if (sortOrder) params.set('sortOrder', sortOrder)
+    if (page) params.set('page', String(page))
+    if (limit) params.set('limit', String(limit))
+    const query = params.toString()
+    return request<PaginatedResponse>(`/contacts${query ? `?${query}` : ''}`)
   },
 
   create: (data: CreateContactData) =>
@@ -25,5 +41,5 @@ export const contactService = {
     request<{ message: string }>(`/contacts/${id}`, { method: 'DELETE' }),
 
   getLeads: (contactId: string) =>
-    request<import('../types').Lead[]>(`/contacts/${contactId}/leads`),
+    request<Lead[]>(`/contacts/${contactId}/leads`),
 }

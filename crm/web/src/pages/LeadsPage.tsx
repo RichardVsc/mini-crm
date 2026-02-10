@@ -1,72 +1,33 @@
-import { useEffect, useState } from 'react'
-import { leadService } from '../services/leadService'
+import { useState } from 'react'
+import { useLeads } from '../hooks/useLeads'
 import { LeadForm } from '../components/LeadForm'
+import { SortableHeader } from '../components/SortableHeader'
+import { Pagination } from '../components/Pagination'
+import { STATUS_LABELS, STATUS_COLORS } from '../constants/lead'
 import { LEAD_STATUSES } from '../types'
 import type { Lead } from '../types'
 
-const STATUS_LABELS: Record<string, string> = {
-  novo: 'Novo',
-  contactado: 'Contactado',
-  qualificado: 'Qualificado',
-  convertido: 'Convertido',
-  perdido: 'Perdido',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  novo: 'bg-blue-100 text-blue-700',
-  contactado: 'bg-yellow-100 text-yellow-700',
-  qualificado: 'bg-purple-100 text-purple-700',
-  convertido: 'bg-green-100 text-green-700',
-  perdido: 'bg-red-100 text-red-700',
-}
-
 export function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([])
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingLead, setEditingLead] = useState<Lead | undefined>()
 
-  async function fetchLeads() {
-    setLoading(true)
-    setError('')
-    try {
-      const data = await leadService.getAll(search || undefined, statusFilter || undefined)
-      setLeads(data)
-    } catch {
-      setError('Erro ao carregar leads')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleDelete(lead: Lead) {
-    if (!confirm(`Deseja realmente remover o lead "${lead.name}"?`)) return
-
-    try {
-      await leadService.remove(lead.id)
-      fetchLeads()
-    } catch {
-      alert('Erro ao remover lead')
-    }
-  }
+  const {
+    leads, search, setSearch, statusFilter, setStatusFilter,
+    loading, error, sortBy, sortOrder, handleSort,
+    page, setPage, totalPages, total,
+    deleteLead, refetch,
+  } = useLeads()
 
   function handleFormSuccess() {
     setShowForm(false)
     setEditingLead(undefined)
-    fetchLeads()
+    refetch()
   }
 
   function handleEdit(lead: Lead) {
     setEditingLead(lead)
     setShowForm(true)
   }
-
-  useEffect(() => {
-    fetchLeads()
-  }, [search, statusFilter])
 
   return (
     <div className="space-y-6">
@@ -118,49 +79,45 @@ export function LeadsPage() {
       )}
 
       {!loading && leads.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-lg border border-gray-200">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Nome</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Empresa</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Status</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Criado em</th>
-                <th className="text-right px-4 py-3 text-sm font-medium text-gray-600">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((lead) => (
-                <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-800">{lead.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{lead.company}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[lead.status]}`}>
-                      {STATUS_LABELS[lead.status]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right space-x-2">
-                    <button
-                      onClick={() => handleEdit(lead)}
-                      className="text-yellow-600 hover:underline"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(lead)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Remover
-                    </button>
-                  </td>
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full bg-white rounded-lg border border-gray-200">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <SortableHeader label="Nome" field="name" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Empresa</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Contato</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Status</th>
+                  <SortableHeader label="Criado em" field="createdAt" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <th className="text-right px-4 py-3 text-sm font-medium text-gray-600">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {leads.map((lead) => (
+                  <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-800">{lead.name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{lead.company}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{lead.contact?.name ?? '—'}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[lead.status]}`}>
+                        {STATUS_LABELS[lead.status]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right space-x-2">
+                      <button onClick={() => handleEdit(lead)} className="text-yellow-600 hover:underline">Editar</button>
+                      <button onClick={() => deleteLead(lead)} className="text-red-600 hover:underline">Remover</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <Pagination page={page} totalPages={totalPages} total={total} label="lead" onPageChange={setPage} />
+        </>
       )}
     </div>
   )
