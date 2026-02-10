@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import { leadRepository } from '../../repositories/lead.repository.js'
+import { contactRepository } from '../../repositories/contact.repository.js'
+import { paginate } from '../../utils/pagination.js'
 import type { LeadStatus } from '../../types/index.js'
 
 const route = new Hono()
@@ -9,7 +11,23 @@ route.get('/', (c) => {
   const status = c.req.query('status') as LeadStatus | undefined
 
   const leads = leadRepository.findAll({ search, status })
-  return c.json(leads)
+
+  const result = paginate(leads, {
+    page: c.req.query('page'),
+    limit: c.req.query('limit'),
+    sortBy: c.req.query('sortBy'),
+    sortOrder: c.req.query('sortOrder'),
+  }, ['name', 'createdAt'])
+
+  const dataWithContact = result.data.map((lead) => {
+    const contact = contactRepository.findById(lead.contactId)
+    return {
+      ...lead,
+      contact: contact ? { id: contact.id, name: contact.name, email: contact.email } : null,
+    }
+  })
+
+  return c.json({ ...result, data: dataWithContact })
 })
 
 export { route as listLeads }
