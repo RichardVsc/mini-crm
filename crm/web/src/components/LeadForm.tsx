@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { contactService } from '../services/contactService'
 import { leadService } from '../services/leadService'
 import { LEAD_STATUSES } from '../types'
+import { STATUS_LABELS } from '../constants/lead'
 import type { Contact, Lead } from '../types'
 
 interface LeadFormProps {
@@ -108,7 +109,7 @@ export function LeadForm({ lead, onSuccess, onCancel }: LeadFormProps) {
           required
         >
           {LEAD_STATUSES.map((s) => (
-            <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            <option key={s} value={s}>{STATUS_LABELS[s]}</option>
           ))}
         </select>
       </div>
