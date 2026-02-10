@@ -168,8 +168,14 @@ npm test
 
 ## 🧪 Testes
 
-55 testes unitários cobrindo:
+Backend – 55 testes unitários cobrindo:
 
 - **Repositories**: CRUD completo, busca, filtros
 - **Schemas**: Validação de campos, formatos, parcialidade no update
 - **Paginação**: Limites, ordenação, campos inválidos
+
+Frontend – 12 testes unitários cobrindo:
+
+- **Hooks**: comportamento assíncrono e controle de estado (useDebounce)
+- **Utils**: funções puras e regras de formatação (phoneMask)
+- **Constantes**: consistência entre estados, labels e cores de domínio
