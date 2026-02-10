@@ -29,3 +29,13 @@ export const LEAD_STATUSES: LeadStatus[] = [
   'convertido',
   'perdido',
 ]
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
