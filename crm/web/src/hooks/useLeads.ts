@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { leadService } from '../services/leadService'
 import { useDebounce } from './useDebounce'
-import type { Lead } from '../types'
+import type { LeadWithContact } from '../types'
 
 const LEADS_PER_PAGE = 10
 
 export function useLeads() {
-  const [leads, setLeads] = useState<Lead[]>([])
+  const [leads, setLeads] = useState<LeadWithContact[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [loading, setLoading] = useState(true)
@@ -16,21 +16,23 @@ export function useLeads() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
-  const [pendingDelete, setPendingDelete] = useState<Lead | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<LeadWithContact | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   const debouncedSearch = useDebounce(search)
 
-  function handleSort(field: string) {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortBy(field)
+  const handleSort = useCallback((field: string) => {
+    setSortBy((prev) => {
+      if (prev === field) {
+        setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'))
+        return prev
+      }
       setSortOrder('asc')
-    }
-  }
+      return field
+    })
+  }, [])
 
-  const fetchLeads = useCallback(async (fetchPage: number) => {
+  const fetchLeads = useCallback(async (fetchPage: number, signal?: AbortSignal) => {
     setLoading(true)
     setError('')
     try {
@@ -40,12 +42,14 @@ export function useLeads() {
         sortBy || undefined,
         sortOrder,
         fetchPage,
-        LEADS_PER_PAGE
+        LEADS_PER_PAGE,
+        signal
       )
       setLeads(response.data)
       setTotalPages(response.pagination.totalPages)
       setTotal(response.pagination.total)
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return
       setError('Erro ao carregar leads')
     } finally {
       setLoading(false)
@@ -53,8 +57,10 @@ export function useLeads() {
   }, [debouncedSearch, statusFilter, sortBy, sortOrder])
 
   useEffect(() => {
+    const controller = new AbortController()
     setPage(1)
-    fetchLeads(1)
+    fetchLeads(1, controller.signal)
+    return () => controller.abort()
   }, [fetchLeads])
 
   function handlePageChange(newPage: number) {
@@ -62,7 +68,7 @@ export function useLeads() {
     fetchLeads(newPage)
   }
 
-  function requestDelete(lead: Lead) {
+  function requestDelete(lead: LeadWithContact) {
     setPendingDelete(lead)
   }
 

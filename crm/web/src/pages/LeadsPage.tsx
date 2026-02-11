@@ -6,11 +6,11 @@ import { SortableHeader } from '../components/SortableHeader'
 import { Pagination } from '../components/Pagination'
 import { STATUS_LABELS, STATUS_COLORS } from '../constants/lead'
 import { LEAD_STATUSES } from '../types'
-import type { Lead } from '../types'
+import type { LeadWithContact } from '../types'
 
 export function LeadsPage() {
   const [showForm, setShowForm] = useState(false)
-  const [editingLead, setEditingLead] = useState<Lead | undefined>()
+  const [editingLead, setEditingLead] = useState<LeadWithContact | undefined>()
 
   const {
     leads, search, setSearch, statusFilter, setStatusFilter,
@@ -26,7 +26,7 @@ export function LeadsPage() {
     refetch()
   }
 
-  function handleEdit(lead: Lead) {
+  function handleEdit(lead: LeadWithContact) {
     setEditingLead(lead)
     setShowForm(true)
   }
@@ -99,7 +99,7 @@ export function LeadsPage() {
                   <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-800">{lead.name}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{lead.company}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{lead.contact?.name ?? '—'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{lead.contact.name}</td>
                     <td className="px-4 py-3 text-sm">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[lead.status]}`}>
                         {STATUS_LABELS[lead.status]}

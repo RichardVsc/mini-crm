@@ -1,10 +1,10 @@
 import { request } from './api'
-import type { Lead, PaginatedResponse } from '../types'
+import type { Lead, LeadWithContact, PaginatedResponse } from '../types'
 
-type CreateLeadData = Omit<Lead, 'id' | 'createdAt' | 'contact'>
+type CreateLeadData = Omit<Lead, 'id' | 'createdAt'>
 
 export const leadService = {
-  getAll: (search?: string, status?: string, sortBy?: string, sortOrder?: string, page?: number, limit?: number) => {
+  getAll: (search?: string, status?: string, sortBy?: string, sortOrder?: string, page?: number, limit?: number, signal?: AbortSignal) => {
     const params = new URLSearchParams()
     if (search) params.set('search', search)
     if (status) params.set('status', status)
@@ -13,7 +13,7 @@ export const leadService = {
     if (page) params.set('page', String(page))
     if (limit) params.set('limit', String(limit))
     const query = params.toString()
-    return request<PaginatedResponse<Lead>>(`/leads${query ? `?${query}` : ''}`)
+    return request<PaginatedResponse<LeadWithContact>>(`/leads${query ? `?${query}` : ''}`, { signal })
   },
 
   create: (data: CreateLeadData) =>

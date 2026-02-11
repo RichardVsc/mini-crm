@@ -13,7 +13,10 @@ export interface Lead {
   company: string
   status: LeadStatus
   createdAt: string
-  contact?: {
+}
+
+export interface LeadWithContact extends Lead {
+  contact: {
     id: string
     name: string
     email: string
