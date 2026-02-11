@@ -44,4 +44,8 @@ export const contactRepository = {
     contacts.splice(index, 1)
     return true
   },
+
+  clear(): void {
+    contacts.length = 0
+  },
 }

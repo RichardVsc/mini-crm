@@ -6,11 +6,8 @@ describe('Lead Repository', () => {
   let contactId: string
 
   beforeEach(() => {
-    const leads = leadRepository.findAll()
-    leads.forEach((l) => leadRepository.delete(l.id))
-
-    const contacts = contactRepository.findAll()
-    contacts.forEach((c) => contactRepository.delete(c.id))
+    leadRepository.clear()
+    contactRepository.clear()
 
     const contact = contactRepository.create({
       name: 'Maria Silva',

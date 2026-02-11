@@ -23,8 +23,8 @@ describe('Lead Routes', () => {
   let contactId: string
 
   beforeEach(async () => {
-    ;[...leadRepository.findAll()].forEach((l) => leadRepository.delete(l.id))
-    ;[...contactRepository.findAll()].forEach((c) => contactRepository.delete(c.id))
+    leadRepository.clear()
+    contactRepository.clear()
 
     const res = await app.request('/contacts', json({
       name: 'Maria Silva',

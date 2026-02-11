@@ -69,4 +69,8 @@ export const leadRepository = {
       if (index !== -1) leads.splice(index, 1)
     })
   },
+
+  clear(): void {
+    leads.length = 0
+  },
 }

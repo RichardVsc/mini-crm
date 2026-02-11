@@ -27,8 +27,8 @@ const validContact = {
 
 describe('Contact Routes', () => {
   beforeEach(() => {
-    ;[...leadRepository.findAll()].forEach((l) => leadRepository.delete(l.id))
-    ;[...contactRepository.findAll()].forEach((c) => contactRepository.delete(c.id))
+    leadRepository.clear()
+    contactRepository.clear()
   })
 
   describe('POST /contacts', () => {

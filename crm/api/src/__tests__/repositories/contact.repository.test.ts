@@ -3,8 +3,7 @@ import { contactRepository } from '../../repositories/contact.repository.js'
 
 describe('Contact Repository', () => {
   beforeEach(() => {
-    const contacts = contactRepository.findAll()
-    contacts.forEach((c) => contactRepository.delete(c.id))
+    contactRepository.clear()
   })
 
   it('should create a contact with id and createdAt', () => {
