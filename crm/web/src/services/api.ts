@@ -14,23 +14,27 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   })
 
   if (!response.ok) {
-    const body = await response.json()
-    const error = body.error
+    let error: unknown
+
+    try {
+      const body = await response.json()
+      error = body.error
+    } catch {
+      throw new Error(`Erro no servidor (${response.status})`)
+    }
 
     if (typeof error === 'string') {
       throw new Error(error)
     }
 
-    if (error?.properties) {
-      const messages = Object.values(error.properties)
-        .flatMap((field: unknown) => {
-          const f = field as { errors?: string[] }
-          return f.errors ?? []
-        })
+    if (error && typeof error === 'object' && 'properties' in error) {
+      const props = error as { properties: Record<string, { errors?: string[] }> }
+      const messages = Object.values(props.properties)
+        .flatMap((field) => field.errors ?? [])
       throw new Error(messages.join('. ') || 'Erro de validação')
     }
 
-    throw new Error('Erro na requisição')
+    throw new Error(`Erro na requisição (${response.status})`)
   }
 
   return response.json()
