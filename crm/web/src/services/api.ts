@@ -14,8 +14,23 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Erro na requisição')
+    const body = await response.json()
+    const error = body.error
+
+    if (typeof error === 'string') {
+      throw new Error(error)
+    }
+
+    if (error?.properties) {
+      const messages = Object.values(error.properties)
+        .flatMap((field: unknown) => {
+          const f = field as { errors?: string[] }
+          return f.errors ?? []
+        })
+      throw new Error(messages.join('. ') || 'Erro de validação')
+    }
+
+    throw new Error('Erro na requisição')
   }
 
   return response.json()
