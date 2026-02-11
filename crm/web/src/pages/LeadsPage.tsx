@@ -118,7 +118,7 @@ export function LeadsPage() {
             </table>
           </div>
 
-          <Pagination page={page} totalPages={totalPages} total={total} label="lead" onPageChange={setPage} />
+          <Pagination page={page} totalPages={totalPages} total={total} label="lead" loading={loading} onPageChange={setPage} />
         </>
       )}
 

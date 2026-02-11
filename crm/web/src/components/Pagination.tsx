@@ -3,10 +3,11 @@ interface PaginationProps {
   totalPages: number
   total: number
   label: string
+  loading?: boolean
   onPageChange: (page: number) => void
 }
 
-export function Pagination({ page, totalPages, total, label, onPageChange }: PaginationProps) {
+export function Pagination({ page, totalPages, total, label, loading, onPageChange }: PaginationProps) {
   if (total === 0) return null
 
   return (
@@ -17,7 +18,7 @@ export function Pagination({ page, totalPages, total, label, onPageChange }: Pag
       <div className="flex items-center gap-2">
         <button
           onClick={() => onPageChange(page - 1)}
-          disabled={page <= 1}
+          disabled={page <= 1 || loading}
           className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Anterior
@@ -27,7 +28,7 @@ export function Pagination({ page, totalPages, total, label, onPageChange }: Pag
         </span>
         <button
           onClick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages}
+          disabled={page >= totalPages || loading}
           className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Próximo

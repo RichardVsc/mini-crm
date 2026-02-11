@@ -101,7 +101,7 @@ export function ContactsPage() {
             </table>
           </div>
 
-          <Pagination page={page} totalPages={totalPages} total={total} label="contato" onPageChange={setPage} />
+          <Pagination page={page} totalPages={totalPages} total={total} label="contato" loading={loading} onPageChange={setPage} />
         </>
       )}
 
