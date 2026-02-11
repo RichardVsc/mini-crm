@@ -23,16 +23,18 @@ export function useContacts() {
 
   const debouncedSearch = useDebounce(search)
 
-  function handleSort(field: string) {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortBy(field)
+  const handleSort = useCallback((field: string) => {
+    setSortBy((prev) => {
+      if (prev === field) {
+        setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'))
+        return prev
+      }
       setSortOrder('asc')
-    }
-  }
+      return field
+    })
+  }, [])
 
-  const fetchContacts = useCallback(async (fetchPage: number) => {
+  const fetchContacts = useCallback(async (fetchPage: number, signal?: AbortSignal) => {
     setLoading(true)
     setError('')
     setSelectedContact(null)
@@ -43,12 +45,14 @@ export function useContacts() {
         sortBy || undefined,
         sortOrder,
         fetchPage,
-        CONTACTS_PER_PAGE
+        CONTACTS_PER_PAGE,
+        signal
       )
       setContacts(response.data)
       setTotalPages(response.pagination.totalPages)
       setTotal(response.pagination.total)
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return
       setError('Erro ao carregar contatos')
     } finally {
       setLoading(false)
@@ -56,8 +60,10 @@ export function useContacts() {
   }, [debouncedSearch, sortBy, sortOrder])
 
   useEffect(() => {
+    const controller = new AbortController()
     setPage(1)
-    fetchContacts(1)
+    fetchContacts(1, controller.signal)
+    return () => controller.abort()
   }, [fetchContacts])
 
   function handlePageChange(newPage: number) {
