@@ -13,6 +13,7 @@ interface LeadFormProps {
 
 export function LeadForm({ lead, onSuccess, onCancel }: LeadFormProps) {
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [loadingContacts, setLoadingContacts] = useState(false)
   const [contactId, setContactId] = useState(lead?.contactId ?? '')
   const [name, setName] = useState(lead?.name ?? '')
   const [company, setCompany] = useState(lead?.company ?? '')
@@ -23,10 +24,13 @@ export function LeadForm({ lead, onSuccess, onCancel }: LeadFormProps) {
   const isEditing = !!lead
 
   useEffect(() => {
+    if (isEditing) return
+    setLoadingContacts(true)
     contactService.getAll(undefined, undefined, undefined, undefined, 50)
       .then((res) => setContacts(res.data))
       .catch(() => setContacts([]))
-  }, [])
+      .finally(() => setLoadingContacts(false))
+  }, [isEditing])
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
@@ -67,8 +71,11 @@ export function LeadForm({ lead, onSuccess, onCancel }: LeadFormProps) {
             onChange={(e) => setContactId(e.target.value)}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={loadingContacts}
           >
-            <option value="">Selecione um contato</option>
+            <option value="">
+              {loadingContacts ? 'Carregando contatos...' : 'Selecione um contato'}
+            </option>
             {contacts.map((c) => (
               <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
             ))}
