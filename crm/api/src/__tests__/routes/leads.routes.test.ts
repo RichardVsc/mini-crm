@@ -19,6 +19,11 @@ function patch(data: Record<string, unknown>) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function jsonBody(res: Response): Promise<any> {
+  return res.json()
+}
+
 describe('Lead Routes', () => {
   let contactId: string
 
@@ -31,7 +36,7 @@ describe('Lead Routes', () => {
       email: 'maria@email.com',
       phone: '(47) 99999-9999',
     }))
-    const contact = await res.json()
+    const contact = await jsonBody(res)
     contactId = contact.id
   })
 
@@ -43,7 +48,7 @@ describe('Lead Routes', () => {
         company: 'Empresa X',
         status: 'novo',
       }))
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(res.status).toBe(201)
       expect(body.name).toBe('Projeto CRM')
@@ -78,7 +83,7 @@ describe('Lead Routes', () => {
       await app.request('/leads', json({ contactId, name: 'Lead 1', company: 'Empresa A', status: 'novo' }))
 
       const res = await app.request('/leads')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(res.status).toBe(200)
       expect(body.data).toHaveLength(1)
@@ -94,7 +99,7 @@ describe('Lead Routes', () => {
       await app.request('/leads', json({ contactId, name: 'CRM', company: 'Empresa B', status: 'novo' }))
 
       const res = await app.request('/leads?search=website')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(1)
       expect(body.data[0].name).toBe('Website')
@@ -105,7 +110,7 @@ describe('Lead Routes', () => {
       await app.request('/leads', json({ contactId, name: 'Lead 2', company: 'Estetica Plus', status: 'novo' }))
 
       const res = await app.request('/leads?search=premium')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(1)
       expect(body.data[0].company).toBe('Clinica Premium')
@@ -116,7 +121,7 @@ describe('Lead Routes', () => {
       await app.request('/leads', json({ contactId, name: 'Lead 2', company: 'Empresa', status: 'convertido' }))
 
       const res = await app.request('/leads?status=novo')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(1)
       expect(body.data[0].name).toBe('Lead 1')
@@ -128,7 +133,7 @@ describe('Lead Routes', () => {
       await app.request('/leads', json({ contactId, name: 'Automação', company: 'Empresa', status: 'novo' }))
 
       const res = await app.request('/leads?search=projeto&status=novo')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(1)
       expect(body.data[0].name).toBe('Projeto A')
@@ -138,7 +143,7 @@ describe('Lead Routes', () => {
       await app.request('/leads', json({ contactId, name: 'Lead 1', company: 'Empresa', status: 'novo' }))
 
       const res = await app.request('/leads?status=invalido')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(1)
     })
@@ -149,7 +154,7 @@ describe('Lead Routes', () => {
       }
 
       const res = await app.request('/leads?page=1&limit=2')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(2)
       expect(body.pagination.total).toBe(3)
@@ -161,7 +166,7 @@ describe('Lead Routes', () => {
       await app.request('/leads', json({ contactId, name: 'Alpha', company: 'Empresa', status: 'novo' }))
 
       const res = await app.request('/leads?sortBy=name&sortOrder=asc')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data[0].name).toBe('Alpha')
       expect(body.data[1].name).toBe('Beta')
@@ -171,10 +176,10 @@ describe('Lead Routes', () => {
   describe('PATCH /leads/:id', () => {
     it('should update a lead', async () => {
       const create = await app.request('/leads', json({ contactId, name: 'Lead 1', company: 'Empresa', status: 'novo' }))
-      const { id } = await create.json()
+      const { id } = await jsonBody(create)
 
       const res = await app.request(`/leads/${id}`, patch({ status: 'qualificado' }))
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(res.status).toBe(200)
       expect(body.status).toBe('qualificado')
@@ -188,7 +193,7 @@ describe('Lead Routes', () => {
 
     it('should return 400 for invalid status', async () => {
       const create = await app.request('/leads', json({ contactId, name: 'Lead 1', company: 'Empresa', status: 'novo' }))
-      const { id } = await create.json()
+      const { id } = await jsonBody(create)
 
       const res = await app.request(`/leads/${id}`, patch({ status: 'invalido' }))
       expect(res.status).toBe(400)
@@ -198,13 +203,13 @@ describe('Lead Routes', () => {
   describe('DELETE /leads/:id', () => {
     it('should delete a lead', async () => {
       const create = await app.request('/leads', json({ contactId, name: 'Lead 1', company: 'Empresa', status: 'novo' }))
-      const { id } = await create.json()
+      const { id } = await jsonBody(create)
 
       const res = await app.request(`/leads/${id}`, { method: 'DELETE' })
       expect(res.status).toBe(200)
 
       const list = await app.request('/leads')
-      const body = await list.json()
+      const body = await jsonBody(list)
       expect(body.data).toHaveLength(0)
     })
 

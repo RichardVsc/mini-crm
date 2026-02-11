@@ -19,6 +19,11 @@ function patch(data: Record<string, unknown>) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function jsonBody(res: Response): Promise<any> {
+  return res.json()
+}
+
 const validContact = {
   name: 'Maria Silva',
   email: 'maria@email.com',
@@ -34,7 +39,7 @@ describe('Contact Routes', () => {
   describe('POST /contacts', () => {
     it('should create a contact and return 201', async () => {
       const res = await app.request('/contacts', json(validContact))
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(res.status).toBe(201)
       expect(body.name).toBe('Maria Silva')
@@ -60,7 +65,7 @@ describe('Contact Routes', () => {
       await app.request('/contacts', json({ ...validContact, name: 'João', email: 'joao@email.com' }))
 
       const res = await app.request('/contacts')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(res.status).toBe(200)
       expect(body.data).toHaveLength(2)
@@ -72,7 +77,7 @@ describe('Contact Routes', () => {
       await app.request('/contacts', json({ ...validContact, name: 'João', email: 'joao@email.com' }))
 
       const res = await app.request('/contacts?search=maria')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(1)
       expect(body.data[0].name).toBe('Maria Silva')
@@ -83,7 +88,7 @@ describe('Contact Routes', () => {
       await app.request('/contacts', json({ ...validContact, name: 'João', email: 'joao@empresa.com' }))
 
       const res = await app.request('/contacts?search=empresa')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(1)
       expect(body.data[0].name).toBe('João')
@@ -95,7 +100,7 @@ describe('Contact Routes', () => {
       }
 
       const res = await app.request('/contacts?page=1&limit=2')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data).toHaveLength(2)
       expect(body.pagination.total).toBe(3)
@@ -107,7 +112,7 @@ describe('Contact Routes', () => {
       await app.request('/contacts', json({ ...validContact, name: 'Ana', email: 'a@email.com' }))
 
       const res = await app.request('/contacts?sortBy=name&sortOrder=asc')
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(body.data[0].name).toBe('Ana')
       expect(body.data[1].name).toBe('Carlos')
@@ -117,10 +122,10 @@ describe('Contact Routes', () => {
   describe('PATCH /contacts/:id', () => {
     it('should update a contact', async () => {
       const create = await app.request('/contacts', json(validContact))
-      const { id } = await create.json()
+      const { id } = await jsonBody(create)
 
       const res = await app.request(`/contacts/${id}`, patch({ name: 'Maria Atualizada' }))
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(res.status).toBe(200)
       expect(body.name).toBe('Maria Atualizada')
@@ -134,7 +139,7 @@ describe('Contact Routes', () => {
 
     it('should return 400 for invalid data', async () => {
       const create = await app.request('/contacts', json(validContact))
-      const { id } = await create.json()
+      const { id } = await jsonBody(create)
 
       const res = await app.request(`/contacts/${id}`, patch({ email: 'invalido' }))
       expect(res.status).toBe(400)
@@ -144,13 +149,13 @@ describe('Contact Routes', () => {
   describe('DELETE /contacts/:id', () => {
     it('should delete a contact', async () => {
       const create = await app.request('/contacts', json(validContact))
-      const { id } = await create.json()
+      const { id } = await jsonBody(create)
 
       const res = await app.request(`/contacts/${id}`, { method: 'DELETE' })
       expect(res.status).toBe(200)
 
       const list = await app.request('/contacts')
-      const body = await list.json()
+      const body = await jsonBody(list)
       expect(body.data).toHaveLength(0)
     })
 
@@ -161,7 +166,7 @@ describe('Contact Routes', () => {
 
     it('should cascade delete associated leads', async () => {
       const create = await app.request('/contacts', json(validContact))
-      const { id } = await create.json()
+      const { id } = await jsonBody(create)
 
       await app.request('/leads', json({ contactId: id, name: 'Lead 1', company: 'Empresa', status: 'novo' }))
       await app.request('/leads', json({ contactId: id, name: 'Lead 2', company: 'Empresa', status: 'novo' }))
@@ -169,7 +174,7 @@ describe('Contact Routes', () => {
       await app.request(`/contacts/${id}`, { method: 'DELETE' })
 
       const leads = await app.request('/leads')
-      const body = await leads.json()
+      const body = await jsonBody(leads)
       expect(body.data).toHaveLength(0)
     })
   })
@@ -177,12 +182,12 @@ describe('Contact Routes', () => {
   describe('GET /contacts/:contactId/leads', () => {
     it('should list leads for a contact', async () => {
       const create = await app.request('/contacts', json(validContact))
-      const { id } = await create.json()
+      const { id } = await jsonBody(create)
 
       await app.request('/leads', json({ contactId: id, name: 'Lead 1', company: 'Empresa', status: 'novo' }))
 
       const res = await app.request(`/contacts/${id}/leads`)
-      const body = await res.json()
+      const body = await jsonBody(res)
 
       expect(res.status).toBe(200)
       expect(body).toHaveLength(1)
