@@ -21,9 +21,12 @@ route.get('/', (c) => {
 
   const dataWithContact = result.data.map((lead) => {
     const contact = contactRepository.findById(lead.contactId)
+    if (!contact) {
+      throw new Error(`Contact ${lead.contactId} not found for lead ${lead.id}`)
+    }
     return {
       ...lead,
-      contact: contact ? { id: contact.id, name: contact.name, email: contact.email } : null,
+      contact: { id: contact.id, name: contact.name, email: contact.email },
     }
   })
 
